@@ -1,12 +1,8 @@
 
 const fields = document.querySelectorAll('[required]')
 
-console.log(fields);
 
-function customValidation(event){
-  const field = event.target
-
-
+function validateField(field){
   //Lógica para vereficar se existem erros
   function verifyErrors(){
     let foundError = false;
@@ -14,34 +10,94 @@ function customValidation(event){
     for(const error in field.validity) {
       // se não for customError
       // então verifica se tem erro
-      if (field.validity[error] && !field.validity.valid ) {
+      if (field.validity[error] && !field.validity.valid) {
           foundError = error
       }
     }
+
+    console.log(foundError)
     return foundError;
   }
 
-  const error = verifyErrors()
-  console.log(`Error: Exists: ${error}`);
+  function customMessage(typeError){
+      const messages = {
+        text: {
+          valueMissing: "Por favor, preencha este campo"
+        },
+        email: {
+          valueMissing: "Email é obrigatório",
+          typeMismatch: "Por favor, preencha um email válido!"
+        }  
+      } 
 
-  if (error) {
-    field.setCustomValidity("Esse campo é obrigatório");
-  } else {
-    field.setCustomValidity("");
+      return messages[field.type][typeError]
+  }
+
+  function setCustomMessage(message = "") {
+    const spanError = field.parentNode.querySelector("span.error")
+
+    if (message) {
+      spanError.classList.add("active")
+      spanError.innerHTML = "Campo Obrigatório!"
+    } else {
+      spanError.classList.remove("active")
+      spanError.innerHTML = ""
+    }    
   }
   
+  return function(){ 
+
+    const error = verifyErrors()
+    
+    
+    if(error){
+      const message = customMessage(error)
+
+      field.style.borderColor = "red"
+      setCustomMessage(message)
+      
+    } else {
+      field.style.transition = ".5s";
+      field.style.borderColor = "green"
+      setCustomMessage()
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function customValidation(event){
+
+  const field = event.target
+  const validation = validateField(field)
+
+  validation()
   
 }
 
 for(let field of fields) {
-  field.addEventListener('invalid', customValidation)
+  field.addEventListener('invalid', event => {
+    //eliminar o bubble
+    event.preventDefault()
+    customValidation(event)
+  })
+  field.addEventListener('blur', customValidation)
 }
-
-
-
-
-
-
 
 
 
